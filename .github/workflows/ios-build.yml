@@ -3,10 +3,10 @@ name: iOS Build
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -16,35 +16,26 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 选择 Xcode 版本
-        run: sudo xcode-select -switch /Applications/Xcode.app
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: 安装 CocoaPods 依赖项
+      - name: 安装 Yarn
+        run: npm install -g yarn
+
+      - name: 安装项目依赖
+        run: yarn install
+
+      - name: 安装 CocoaPods 依赖
         run: pod install
-        working-directory: Listen1
+        working-directory: ios
 
-      - name: 构建应用
+      - name: 构建 iOS 应用
         run: |
           xcodebuild clean build \
-            -workspace Listen1.xcworkspace \
-            -scheme Listen1 \
-            -sdk iphoneos \
+            -workspace ios/Listen 1.xcworkspace \
+            -scheme Listen 1 \
             -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-        working-directory: Listen1
-
-      - name: 导出未签名的 IPA 文件
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath build/Listen1.xcarchive \
-            -exportPath build/ \
-            -exportOptionsPlist exportOptions.plist
-        working-directory: Listen1
-
-      - name: 上传 IPA 文件
-        uses: actions/upload-artifact@v4
-        with:
-          name: Listen1.ipa
-          path: Listen1/build/Listen1.ipa
+            -sdk iphoneos \
+            -derivedDataPath ios/build
